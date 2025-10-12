@@ -2,10 +2,10 @@
  MediNarrate — Clinical Summary Generator AI assistant for doctors to convert voice notes into structured EHRs and summaries. Integrate speech-to-text and fine-tuned medical LLM. Premium tier includes analytics and drug interaction checks.
 # MediNarrate - Clinical Summary Generator: Complete Analysis
 
-## 🏥 *Application Overview*
+##  *Application Overview*
 MediNarrate is a comprehensive AI-powered medical documentation platform that transforms doctors' voice notes into structured clinical summaries and Electronic Health Records (EHRs).
 
-## 🛠 *Core Technologies & Tools*
+##  *Core Technologies & Tools*
 
 ### *Frontend Technologies*
 - *HTML5* - Semantic structure and accessibility
@@ -19,7 +19,7 @@ MediNarrate is a comprehensive AI-powered medical documentation platform that tr
 - *Web Speech API* - Built-in browser speech recognition
 - *Local Storage* - User authentication and data persistence
 
-## 🎯 *Key Features & Functions*
+## *Key Features & Functions*
 
 ### *1. User Authentication System*
 javascript
@@ -75,7 +75,7 @@ javascript
 - Browser-native speech API implementation
 
 
-## 📊 *Application Architecture*
+##  *Application Architecture*
 
 ### *Frontend Components*
 1. *Authentication Layer* - Secure user management
@@ -90,7 +90,7 @@ User Input → Speech/Text → AI Processing → Medical Extraction →
 Structured Output → EHR/Summary Generation → User Review
 
 
-## 🎨 *UI/UX Design Features*
+## *UI/UX Design Features*
 
 ### *Responsive Design*
 - Mobile-first approach
@@ -105,7 +105,7 @@ Structured Output → EHR/Summary Generation → User Review
 - Loading states and animations
 - Tab-based navigation
 
-## 🔒 *Security & Privacy*
+## *Security & Privacy*
 
 ### *Data Protection*
 - Local storage for user data
@@ -118,7 +118,7 @@ Structured Output → EHR/Summary Generation → User Review
 - Error handling for API failures
 - Fallback local processing
 
-## 🚀 *Performance Features*
+##  *Performance Features*
 
 ### *Optimization*
 - Lazy loading for analytics
@@ -132,7 +132,7 @@ Structured Output → EHR/Summary Generation → User Review
 - Offline-capable features
 - Intuitive navigation
 
-## 📈 *Business Value*
+##  *Business Value*
 
 ### *For Medical Professionals*
 - *Time Savings* - 87% reduction in documentation time
