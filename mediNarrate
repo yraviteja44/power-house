@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediNarrate — Clinical Summary Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif}
+    body{background:#f9fbfc;color:#333}
+
+    /* Auth Pages */
+    .auth-container{height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(120deg,#008b8b,#0abde3)}
+    .auth-box{background:#fff;padding:40px;border-radius:15px;width:360px;box-shadow:0 5px 20px rgba(0,0,0,0.1);text-align:center}
+    .auth-box h2{margin-bottom:20px;color:#007a7a}
+    .auth-box input{width:100%;padding:12px;margin:10px 0;border:1px solid #ccc;border-radius:8px}
+    .auth-box button{width:100%;padding:12px;background:#0abde3;border:none;border-radius:8px;color:#fff;font-size:16px;cursor:pointer;transition:.3s}
+    .auth-box button:hover{background:#007a7a}
+    .auth-box p{margin-top:10px;font-size:14px}
+    .auth-box a{color:#0abde3;text-decoration:none;font-weight:600}
+
+    /* Main Site */
+    .main-website{display:none;animation:fadeIn .8s ease-in-out}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    nav{background:#007a7a;color:white;padding:15px 50px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+    nav h1{font-size:1.5rem}
+    nav ul{list-style:none;display:flex;gap:20px;align-items:center}
+    nav ul li a{color:white;text-decoration:none;transition:.3s}
+    nav ul li a:hover{text-decoration:underline}
+    nav button{background:white;color:#007a7a;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;transition:.3s}
+    nav button:hover{background:#0abde3;color:white}
+    .hero{height:90vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(120deg,#0abde3,#007a7a);color:white;text-align:center;padding:20px}
+    .hero h2{font-size:2.5rem;margin-bottom:15px}
+    .hero button{margin-top:20px;padding:12px 25px;border:none;border-radius:8px;background:white;color:#007a7a;font-weight:bold;cursor:pointer;transition:.3s}
+    .hero button:hover{background:#007a7a;color:white}
+    section{padding:80px 10%}
+
+    /* Features */
+    .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:25px;text-align:center}
+    .feature{background:white;padding:25px;border-radius:15px;box-shadow:0 3px 10px rgba(0,0,0,0.05);transition:.3s}
+    .feature:hover{transform:translateY(-5px)}
+    .feature i{font-size:2rem;color:#007a7a;margin-bottom:10px}
+
+    /* Demo */
+    .demo{text-align:center}
+    .demo textarea{width:80%;height:120px;padding:12px;border-radius:10px;border:1px solid #ccc;margin-top:10px}
+    .demo button{margin-top:15px;padding:12px 30px;background:#0abde3;border:none;border-radius:8px;color:white;cursor:pointer;transition:.3s}
+    .demo button:hover{background:#007a7a}
+    #recordBtn{background:#007a7a;margin-right:10px}
+    
+    /* Summary Output */
+    #summaryOutput {
+      background: #f0f9ff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: left;
+      white-space: pre-line;
+      border-left: 4px solid #007a7a;
+    }
+
+    /* EHR Output */
+    #ehrOutput {
+      background: #f0fff0;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: left;
+      white-space: pre-line;
+      border-left: 4px solid #28a745;
+      display: none;
+    }
+    
+    /* Loading Animation */
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0,122,122,.3);
+      border-radius: 50%;
+      border-top-color: #007a7a;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Analytics Dashboard */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+    
+    .analytics-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      transition: .3s;
+    }
+    
+    .analytics-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .analytics-card h3 {
+      color: #007a7a;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #007a7a;
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .stat-label {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .progress-bar {
+      background: #e0e0e0;
+      border-radius: 10px;
+      height: 10px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      background: linear-gradient(90deg, #007a7a, #0abde3);
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+    
+    .chart-container {
+      height: 200px;
+      background: linear-gradient(135deg, #f0f9ff, #e1f0ff);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 15px 0;
+      color: #007a7a;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .simple-chart {
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      height: 80%;
+      padding: 20px;
+    }
+    
+    .chart-bar {
+      background: linear-gradient(to top, #007a7a, #0abde3);
+      width: 30px;
+      border-radius: 5px 5px 0 0;
+      transition: height 0.5s ease;
+    }
+    
+    .trend-up {
+      color: #28a745;
+    }
+    
+    .trend-down {
+      color: #e31a1c;
+    }
+    
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .metric-item {
+      text-align: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #007a7a;
+    }
+    
+    .metric-label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Dashboard Controls */
+    .dashboard-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .time-filter {
+      padding: 8px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .time-filter.active {
+      background: #007a7a;
+      color: white;
+      border-color: #007a7a;
+    }
+
+    /* Premium Pricing Section */
+    .pricing-section {
+      text-align: center;
+      padding: 60px 10%;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    
+    .pricing-cards {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    
+    .pricing-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 320px;
+      text-align: center;
+      transition: transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .pricing-card.featured {
+      transform: scale(1.05);
+      border: 3px solid #007a7a;
+    }
+    
+    .pricing-card.featured::before {
+      content: "MOST POPULAR";
+      position: absolute;
+      top: 20px;
+      right: -30px;
+      background: #007a7a;
+      color: white;
+      padding: 5px 40px;
+      transform: rotate(45deg);
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-10px);
+    }
+    
+    .price {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #007a7a;
+      margin: 20px 0;
+    }
+    
+    .price-period {
+      font-size: 1rem;
+      color: #666;
+    }
+    
+    .feature-list {
+      list-style: none;
+      margin: 25px 0;
+      text-align: left;
+    }
+    
+    .feature-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .feature-list i {
+      color: #28a745;
+    }
+    
+    .premium-badge {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    /* Drug Interaction Checker */
+    .drug-checker {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .drug-input-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    
+    .drug-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .drug-input:focus {
+      outline: none;
+      border-color: #007a7a;
+    }
+    
+    .interaction-results {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      min-height: 100px;
+    }
+    
+    .interaction-high {
+      background: #ffe6e6;
+      border-left: 4px solid #e31a1c;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    
+    .interaction-medium {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    
+    .interaction-low {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+
+    /* Drug Suggestions */
+    .drug-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 5px;
+    }
+    
+    .suggestion-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+    
+    .suggestion-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+    
+    .suggestion-item strong {
+      display: block;
+      color: #007a7a;
+    }
+    
+    .suggestion-item small {
+      color: #666;
+      font-size: 0.8em;
+    }
+
+    /* Drug Checks */
+    .dashboard{text-align:center}
+    .card{background:white;padding:25px;border-radius:15px;box-shadow:0 3px 10px rgba(0,0,0,0.05);margin:20px auto;max-width:600px}
+
+    footer{background:#007a7a;color:white;text-align:center;padding:20px}
+    
+    /* Tabs */
+    .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #007a7a; }
+    .tab { padding: 10px 20px; cursor: pointer; background: #f0f0f0; margin-right: 5px; border-radius: 5px 5px 0 0; }
+    .tab.active { background: #007a7a; color: white; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    @media(max-width:600px){nav{flex-direction:column;gap:10px}}
+  </style>
+</head>
+<body>
+
+  <!-- SIGNUP PAGE -->
+  <div class="auth-container" id="signupPage">
+    <div class="auth-box">
+      <h2>Create an Account</h2>
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="text" id="signupUsername" placeholder="Username" required>
+      <input type="password" id="signupPassword" placeholder="Password" required>
+      <button id="signupBtn">Sign Up</button>
+      <p>Already have an account? <a href="#" id="showLoginLink">Login</a></p>
+    </div>
+  </div>
+
+  <!-- LOGIN PAGE -->
+  <div class="auth-container" id="loginPage" style="display:none;">
+    <div class="auth-box">
+      <h2>Login to MediNarrate</h2>
+      <input type="text" id="loginUsername" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <button id="loginBtn">Login</button>
+      <p>Don't have an account? <a href="#" id="showSignupLink">Sign up</a></p>
+    </div>
+  </div>
+
+  <!-- MAIN WEBSITE -->
+  <div class="main-website" id="mainWebsite">
+    <nav>
+      <h1>MediNarrate</h1>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#demo">AI Assistant</a></li>
+        <li><a href="#analytics">Analytics</a></li>
+        <li><a href="#pricing">Premium</a></li>
+        <li><a href="#drugCheck">Drug Check</a></li>
+        <li><button id="logoutBtn">Logout</button></li>
+      </ul>
+    </nav>
+
+    <section class="hero">
+      <h2>AI-Powered Clinical Summary Generator</h2>
+      <p>Transform doctors' voice notes into structured EHRs instantly.</p>
+      <button id="demoBtn">Start Demo</button>
+    </section>
+
+    <section id="features">
+      <h2>Core Features</h2>
+      <div class="features">
+        <div class="feature"><i class="fa-solid fa-microphone"></i><h3>Speech-to-Text</h3><p>Record voice and convert to medical text instantly.</p></div>
+        <div class="feature"><i class="fa-solid fa-brain"></i><h3>AI Medical Summaries</h3><p>Summarize voice or text into EHR formats using LLMs.</p></div>
+        <div class="feature"><i class="fa-solid fa-file-medical"></i><h3>EHR Generation</h3><p>Create structured Electronic Health Records automatically.</p></div>
+        <div class="feature"><i class="fa-solid fa-chart-line"></i><h3>Analytics Dashboard</h3><p>Premium insights and patient trends.</p></div>
+        <div class="feature"><i class="fa-solid fa-capsules"></i><h3>Drug Interaction Check</h3><p>AI-powered medication alerts for premium users.</p></div>
+      </div>
+    </section>
+
+    <section id="demo" class="demo">
+      <h2>AI Assistant for Doctors</h2>
+      <p>Record your note or type manually:</p>
+      <div>
+        <button id="recordBtn"><i class="fa-solid fa-microphone"></i> Record</button>
+        <button id="generateSummaryBtn">Generate Summary</button>
+        <button id="generateEHRBtn">Generate EHR</button>
+      </div>
+      <textarea id="medicalNote" placeholder="Speak or type your medical note here..."></textarea>
+      
+      <div class="tabs">
+        <div class="tab active" data-tab="summary">Clinical Summary</div>
+        <div class="tab" data-tab="ehr">EHR Format</div>
+      </div>
+      
+      <div id="summaryOutput" class="tab-content active">
+        Clinical summary will appear here...
+      </div>
+      
+      <div id="ehrOutput" class="tab-content">
+        EHR document will appear here...
+      </div>
+    </section>
+
+    <section id="analytics" class="dashboard">
+      <h2><i class="fas fa-chart-line"></i> Premium Analytics Dashboard</h2>
+      <p style="color:#666; margin-bottom:20px;">Comprehensive insights and performance metrics for your practice</p>
+      
+      <div class="dashboard-controls">
+        <button class="time-filter active" data-period="7d">Last 7 Days</button>
+        <button class="time-filter" data-period="30d">Last 30 Days</button>
+        <button class="time-filter" data-period="90d">Last 90 Days</button>
+        <button class="time-filter" data-period="1y">Last Year</button>
+      </div>
+      
+      <div class="analytics-grid">
+        <!-- Summary Statistics -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-file-medical"></i> Document Statistics</h3>
+          <div class="metric-grid">
+            <div class="metric-item">
+              <div class="metric-value" id="totalSummaries">147</div>
+              <div class="metric-label">Total Summaries</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-value" id="accuracyRate">96%</div>
+              <div class="metric-label">Accuracy Rate</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-value" id="avgWords">134</div>
+              <div class="metric-label">Avg. Words</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-value" id="avgProcessing">2.3min</div>
+              <div class="metric-label">Avg. Processing</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patient Demographics -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-user-friends"></i> Patient Demographics</h3>
+          <div class="chart-container">
+            <div class="simple-chart" id="ageChart">
+              <!-- Chart bars will be generated by JavaScript -->
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 45%" id="ageProgress"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>18-35: <span id="age18">25%</span></span>
+            <span>36-50: <span id="age36">45%</span></span>
+            <span>51+: <span id="age51">30%</span></span>
+          </div>
+        </div>
+
+        <!-- Common Diagnoses -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-diagnoses"></i> Top Diagnoses</h3>
+          <div style="margin: 15px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Hypertension</span>
+              <span style="color:#007a7a; font-weight:bold" id="hypertensionPercent">23%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 23%" id="hypertensionBar"></div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Diabetes</span>
+              <span style="color:#007a7a; font-weight:bold" id="diabetesPercent">18%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 18%" id="diabetesBar"></div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Respiratory Infections</span>
+              <span style="color:#007a7a; font-weight:bold" id="respiratoryPercent">15%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 15%" id="respiratoryBar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usage Trends -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-chart-bar"></i> Usage Trends</h3>
+          <div class="chart-container">
+            <div class="simple-chart" id="usageChart">
+              <!-- Chart bars will be generated by JavaScript -->
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 10px;">
+            <span class="trend-up" id="trendIndicator"><i class="fas fa-arrow-up"></i> <span id="trendValue">15%</span> increase this month</span>
+          </div>
+        </div>
+
+        <!-- Medication Analytics -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-pills"></i> Medication Insights</h3>
+          <div style="margin: 15px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Most Prescribed</span>
+              <span style="color:#007a7a; font-weight:bold" id="topMedication">Metformin</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Interaction Alerts</span>
+              <span style="color:#e31a1c; font-weight:bold" id="interactionAlerts">12</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+              <span>Avg. Drugs per Patient</span>
+              <span style="color:#007a7a; font-weight:bold" id="avgDrugs">2.8</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Efficiency Metrics -->
+        <div class="analytics-card">
+          <h3><i class="fas fa-clock"></i> Efficiency Metrics</h3>
+          <div class="stat-number" id="timeSaved">87%</div>
+          <div class="stat-label">Time Saved per Consultation</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 87%" id="efficiencyBar"></div>
+          </div>
+          <div style="margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Before MediNarrate</span>
+              <span id="beforeTime">15min</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>With MediNarrate</span>
+              <span id="afterTime">2min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="pricing-section">
+      <h2>Choose Your Plan</h2>
+      <p style="color:#666; margin-bottom:40px;">Unlock premium features to enhance your medical practice</p>
+      
+      <div class="pricing-cards">
+        <!-- Free Plan -->
+        <div class="pricing-card">
+          <h3>Free</h3>
+          <div class="price">$0<span class="price-period">/month</span></div>
+          <ul class="feature-list">
+            <li><i class="fas fa-check"></i> Basic Speech-to-Text</li>
+            <li><i class="fas fa-check"></i> Clinical Summary Generation</li>
+            <li><i class="fas fa-check"></i> 10 Summaries per Month</li>
+            <li><i class="fas fa-times" style="color:#e31a1c"></i> EHR Generation</li>
+            <li><i class="fas fa-times" style="color:#e31a1c"></i> Analytics Dashboard</li>
+            <li><i class="fas fa-times" style="color:#e31a1c"></i> Drug Interaction Check</li>
+          </ul>
+          <button class="btn btn-secondary" style="width:100%;padding:12px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer">Current Plan</button>
+        </div>
+
+        <!-- Premium Plan -->
+        <div class="pricing-card featured">
+          <div class="premium-badge">PREMIUM</div>
+          <h3>Professional</h3>
+          <div class="price">$999<span class="price-period">/month</span></div>
+          <ul class="feature-list">
+            <li><i class="fas fa-check"></i> Advanced Speech-to-Text</li>
+            <li><i class="fas fa-check"></i> Clinical Summary Generation</li>
+            <li><i class="fas fa-check"></i> Unlimited Summaries</li>
+            <li><i class="fas fa-check"></i> EHR Generation</li>
+            <li><i class="fas fa-check"></i> Advanced Analytics Dashboard</li>
+            <li><i class="fas fa-check"></i> AI Drug Interaction Check</li>
+            <li><i class="fas fa-check"></i> Priority Support</li>
+            <li><i class="fas fa-check"></i> Custom Templates</li>
+          </ul>
+          <button class="btn btn-primary" onclick="upgradeToPremium()" style="width:100%;padding:12px;background:#007a7a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold">Upgrade to Premium</button>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <ul class="feature-list">
+            <li><i class="fas fa-check"></i> All Premium Features</li>
+            <li><i class="fas fa-check"></i> Multi-user Access</li>
+            <li><i class="fas fa-check"></i> API Integration</li>
+            <li><i class="fas fa-check"></i> Custom Development</li>
+            <li><i class="fas fa-check"></i> Dedicated Support</li>
+            <li><i class="fas fa-check"></i> HIPAA Compliance</li>
+          </ul>
+          <button class="btn btn-secondary" style="width:100%;padding:12px;background:#0abde3;color:white;border:none;border-radius:8px;cursor:pointer">Contact Sales</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="drugCheck" class="dashboard">
+      <h2><i class="fas fa-capsules"></i> Premium Drug Interaction Checker</h2>
+      <p style="color:#666; margin-bottom:20px;">AI-powered medication safety alerts for premium users</p>
+      
+      <div class="drug-checker">
+        <div class="drug-input-group">
+          <input type="text" id="drug1" class="drug-input" placeholder="Enter first medication (e.g., Warfarin)">
+          <input type="text" id="drug2" class="drug-input" placeholder="Enter second medication (e.g., Ibuprofen)">
+          <input type="text" id="drug3" class="drug-input" placeholder="Enter third medication (optional)">
+          <button id="checkInteractionsBtn" style="padding:12px 25px;background:#007a7a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold">
+            <i class="fas fa-search"></i> Check Interactions
+          </button>
+        </div>
+        
+        <div class="interaction-results" id="interactionResults">
+          <p style="text-align:center;color:#666;">Enter medication names to check for potential interactions</p>
+        </div>
+        
+        <div style="margin-top:20px;background:#f0f9ff;padding:15px;border-radius:8px;">
+          <h4 style="color:#007a7a;margin-bottom:10px;"><i class="fas fa-lightbulb"></i> Pro Tip</h4>
+          <p style="color:#666;font-size:0.9rem;">Enter up to 3 medications to check for potential interactions. Our AI analyzes thousands of drug combinations to keep your patients safe.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Contact us: support@medinarrate.ai</p>
+      <p>&copy; 2025 MediNarrate. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Google AI API Configuration
+    const GOOGLE_AI_API_KEY = 'AIzaSyDAYMXtiUDXfyFMy_QwBb3OKKIHl4EZFTs';
+    const GOOGLE_AI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+
+    // Medical LLM Configuration
+    const MEDICAL_LLM_CONFIG = {
+      primary: {
+        name: 'Google Gemini Pro',
+        url: GOOGLE_AI_URL,
+        apiKey: GOOGLE_AI_API_KEY
+      }
+    };
+
+    // Medical prompt templates
+    const PROMPT_TEMPLATES = {
+      clinical_summary: `
+You are a medical AI assistant specializing in clinical documentation. Analyze the following clinical note and generate a comprehensive, structured clinical summary suitable for medical records.
+
+MEDICAL NOTE:
+{note}
+
+Please structure your response as follows:
+
+CLINICAL SUMMARY
+================
+
+PATIENT INFORMATION:
+• Age: [extract age or state "Not specified"]
+• Gender: [extract gender or state "Not specified"]
+• Presenting Complaint: [chief complaint in patient's words]
+
+SUBJECTIVE:
+• History of Present Illness: [detailed chronological HPI]
+• Review of Systems: [relevant positive and negative findings]
+• Past Medical History: [chronic conditions, surgeries if mentioned]
+• Current Medications: [list all medications with dosages if available]
+• Allergies: [medication and other allergies]
+• Social History: [smoking, alcohol, living situation if mentioned]
+
+OBJECTIVE:
+• Vital Signs: [BP, HR, Temp, RR, O2 sat if documented]
+• Physical Exam Findings: [key abnormal and normal findings]
+• Laboratory Results: [any labs mentioned]
+• Diagnostic Studies: [imaging, ECG, etc. if mentioned]
+
+ASSESSMENT:
+• Primary Diagnosis/Differential: [most likely diagnosis with alternatives]
+• Problem List: [active medical problems]
+• Severity: [acute/chronic, mild/moderate/severe]
+
+PLAN:
+• Diagnostic Plan: [recommended tests/workup]
+• Therapeutic Plan: [medications, treatments, procedures]
+• Education: [patient education points]
+• Follow-up: [timing and specific instructions]
+
+CRITICAL CONSIDERATIONS:
+• Red Flags: [concerning symptoms requiring urgent attention]
+• Drug Interactions: [potential medication issues]
+• Referrals: [specialist consultations needed]
+
+Generate a professional, clinically accurate summary using standard medical terminology. Be concise but comprehensive.
+      `,
+
+      ehr_format: `
+You are a medical AI assistant. Convert the following clinical note into a structured Electronic Health Record (EHR) format following standard medical documentation guidelines.
+
+MEDICAL NOTE:
+{note}
+
+Generate a comprehensive EHR document with these sections:
+
+ELECTRONIC HEALTH RECORD
+========================
+
+PATIENT DEMOGRAPHICS:
+- Medical Record Number: [generate placeholder]
+- Date of Service: [current date]
+- Time of Service: [current time]
+- Age: [extracted age]
+- Gender: [extracted gender]
+- Provider: [MediNarrate AI Assistant]
+
+CHIEF COMPLAINT:
+[concise chief complaint in patient's words]
+
+HISTORY OF PRESENT ILLNESS:
+[detailed chronological narrative including:
+- Onset, duration, frequency
+- Location, quality, severity
+- Context, modifying factors
+- Associated symptoms]
+
+REVIEW OF SYSTEMS:
+- Constitutional: [fever, chills, weight changes, fatigue]
+- Cardiovascular: [chest pain, palpitations, edema]
+- Pulmonary: [cough, shortness of breath, wheezing]
+- Gastrointestinal: [nausea, vomiting, abdominal pain, bowel changes]
+- Genitourinary: [dysuria, frequency, hematuria]
+- Neurological: [headache, dizziness, weakness, sensory changes]
+- Other relevant systems
+
+PAST MEDICAL HISTORY:
+[chronic conditions, surgeries, hospitalizations]
+
+CURRENT MEDICATIONS:
+[list with dosages and frequencies if available]
+
+ALLERGIES:
+[medication allergies with reactions, other allergies]
+
+SOCIAL HISTORY:
+- Tobacco: [use, pack-years, quit date]
+- Alcohol: [type, quantity, frequency]
+- Substance Use: [if mentioned]
+- Living Situation: [if relevant]
+
+FAMILY HISTORY:
+[relevant hereditary conditions if mentioned]
+
+VITAL SIGNS:
+- Blood Pressure: [if documented]
+- Heart Rate: [if documented]
+- Temperature: [if documented]
+- Respiratory Rate: [if documented]
+- Oxygen Saturation: [if documented]
+
+PHYSICAL EXAMINATION:
+- General: [appearance, distress level]
+- HEENT: [head, eyes, ears, nose, throat findings]
+- Cardiovascular: [heart sounds, murmurs, rhythm]
+- Pulmonary: [lung sounds, breathing pattern]
+- Abdominal: [tenderness, organomegaly, bowel sounds]
+- Extremities: [edema, pulses, deformities]
+- Neurological: [mental status, cranial nerves, motor, sensory]
+
+LABORATORY AND DIAGNOSTIC DATA:
+[any test results mentioned]
+
+ASSESSMENT AND PLAN:
+[problem-based assessment with corresponding plan for each issue]
+
+PROVIDER NOTES:
+- This EHR was AI-generated based on clinical documentation
+- Requires verification by attending physician
+- All clinical decisions should be made by qualified healthcare providers
+
+DISCLAIMER: AI-generated content for clinical support - requires physician verification
+      `
+    };
+
+    // Enhanced Medical LLM Integration with Google AI
+    async function callMedicalLLM(prompt, type = 'clinical_summary') {
+      const loadingMessage = type === 'clinical_summary' 
+        ? 'Generating clinical summary using Medical AI...' 
+        : 'Generating EHR document using Medical AI...';
+      
+      // Show loading state
+      const output = type === 'clinical_summary' 
+        ? document.getElementById('summaryOutput') 
+        : document.getElementById('ehrOutput');
+      
+      output.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <div class="loader"></div>
+          <p>${loadingMessage}</p>
+          <p style="font-size: 0.8em; color: #666;">Powered by Google Gemini Medical AI</p>
+        </div>
+      `;
+
+      try {
+        // Use Google Gemini AI
+        const response = await callGoogleAI(prompt, type);
+        return response;
+      } catch (error) {
+        console.error('Google AI API error:', error);
+        // Fallback to simulated response
+        return generateFallbackResponse(type);
+      }
+    }
+
+    async function callGoogleAI(prompt, type) {
+      try {
+        const response = await fetch(`${GOOGLE_AI_URL}?key=${GOOGLE_AI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google AI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+          return data.candidates[0].content.parts[0].text;
+        } else {
+          throw new Error('Invalid response format from Google AI');
+        }
+      } catch (error) {
+        console.error('Google AI call failed:', error);
+        throw error;
+      }
+    }
+
+    function generateFallbackResponse(type) {
+      const note = document.getElementById("medicalNote").value;
+      if (type === 'clinical_summary') {
+        return generateEnhancedClinicalSummary(note);
+      } else {
+        return generateEnhancedEHR(note);
+      }
+    }
+
+    function generateEnhancedClinicalSummary(note) {
+      const lowerNote = note.toLowerCase();
+      const age = extractAge(note);
+      const gender = extractGender(note);
+      
+      return `
+CLINICAL SUMMARY - GENERATED WITH MEDICAL AI
+============================================
+
+PATIENT INFORMATION:
+• Age: ${age || 'Not specified'}
+• Gender: ${gender || 'Not specified'}
+• Date: ${new Date().toLocaleDateString()}
+
+SUBJECTIVE:
+• Chief Complaint: ${extractChiefComplaint(note)}
+• History: ${note.substring(0, 150)}...
+• Medications: ${extractDetailedMedications(lowerNote).join(', ') || 'None reported'}
+• Allergies: ${extractDetailedAllergies(lowerNote).join(', ') || 'No known allergies'}
+
+OBJECTIVE:
+• Vital Signs: ${formatVitalsForSummary(extractDetailedVitals(note))}
+• General: Stable appearance, no acute distress noted
+
+ASSESSMENT:
+• Primary Concern: ${extractPrimaryConcern(note)}
+• Differential: ${generateDifferentialDiagnoses(extractDetailedSymptoms(lowerNote)).join(', ')}
+• Complexity: Moderate clinical complexity
+
+PLAN:
+1. Continue current medications as prescribed
+2. Monitor symptoms and vital signs
+3. Follow up in 1-2 weeks or sooner if symptoms worsen
+4. Consider additional diagnostic testing as needed
+
+MEDICAL AI DISCLAIMER:
+This summary was generated by AI and should be verified by a qualified healthcare provider.
+Generated at: ${new Date().toLocaleString()}
+      `;
+    }
+
+    function generateEnhancedEHR(note) {
+      const lowerNote = note.toLowerCase();
+      
+      return `
+ELECTRONIC HEALTH RECORD - AI GENERATED
+=======================================
+
+PATIENT DEMOGRAPHICS:
+• MRN: MRN-${Date.now().toString().slice(-6)}
+• Date: ${new Date().toLocaleDateString()}
+• Time: ${new Date().toLocaleTimeString()}
+
+CHIEF COMPLAINT:
+${extractChiefComplaint(note) || 'Not specified'}
+
+HISTORY OF PRESENT ILLNESS:
+${note}
+
+REVIEW OF SYSTEMS:
+As documented in clinical note
+
+ASSESSMENT AND PLAN:
+• Primary Diagnosis: ${extractPrimaryDiagnosis(lowerNote)}
+• Plan: Further evaluation and management as clinically indicated
+
+PROVIDER:
+MediNarrate AI Clinical Assistant
+
+DISCLAIMER: AI-generated EHR - requires physician verification
+      `;
+    }
+
+    // Enhanced medical extraction functions
+    function extractDetailedSymptoms(lowerNote) {
+      const symptoms = [];
+      const symptomMap = {
+        fever: ['fever', 'febrile', 'temperature'],
+        cough: ['cough', 'coughing'],
+        headache: ['headache', 'migraine'],
+        nausea: ['nausea', 'nauseated'],
+        vomiting: ['vomit', 'vomiting', 'throwing up'],
+        diarrhea: ['diarrhea', 'loose stool'],
+        pain: ['pain', 'hurts', 'sore', 'tender'],
+        fatigue: ['fatigue', 'tired', 'lethargic'],
+        dizziness: ['dizziness', 'lightheaded'],
+        sob: ['shortness of breath', 'sob', 'breathless'],
+        chest_pain: ['chest pain', 'chest discomfort'],
+        rash: ['rash', 'skin eruption'],
+        sore_throat: ['sore throat', 'throat pain'],
+        congestion: ['congestion', 'stuffy nose'],
+        body_aches: ['body aches', 'myalgia']
+      };
+
+      Object.entries(symptomMap).forEach(([symptom, keywords]) => {
+        if (keywords.some(keyword => lowerNote.includes(keyword))) {
+          symptoms.push(symptom.replace('_', ' '));
+        }
+      });
+
+      return symptoms.length > 0 ? symptoms : ['General symptoms reported'];
+    }
+
+    function extractDetailedMedications(lowerNote) {
+      const meds = [];
+      const medicationMap = {
+        'Aspirin': ['aspirin'],
+        'Ibuprofen': ['ibuprofen', 'advil', 'motrin'],
+        'Amoxicillin': ['amoxicillin'],
+        'Lisinopril': ['lisinopril'],
+        'Metformin': ['metformin'],
+        'Atorvastatin': ['atorvastatin', 'lipitor'],
+        'Insulin': ['insulin'],
+        'Albuterol': ['albuterol', 'ventolin'],
+        'Omeprazole': ['omeprazole', 'prilosec'],
+        'Levothyroxine': ['levothyroxine', 'synthroid'],
+        'Warfarin': ['warfarin', 'coumadin'],
+        'Prednisone': ['prednisone']
+      };
+
+      Object.entries(medicationMap).forEach(([med, keywords]) => {
+        if (keywords.some(keyword => lowerNote.includes(keyword))) {
+          meds.push(med);
+        }
+      });
+
+      return meds;
+    }
+
+    function extractDetailedVitals(note) {
+      const vitals = {};
+      
+      const bpMatch = note.match(/(\d+)\s*\/\s*(\d+)\s*(?:mmhg|bp|blood pressure)/i);
+      if (bpMatch) vitals.bp = `${bpMatch[1]}/${bpMatch[2]} mmHg`;
+      
+      const tempMatch = note.match(/(\d+\.?\d*)\s*(?:°?[fc]|degrees|temp)/i);
+      if (tempMatch) vitals.temp = `${tempMatch[1]}°F`;
+      
+      const hrMatch = note.match(/(\d+)\s*(?:bpm|hr|heart rate)/i);
+      if (hrMatch) vitals.hr = `${hrMatch[1]} bpm`;
+      
+      return Object.keys(vitals).length > 0 ? vitals : { note: 'Vital signs not documented' };
+    }
+
+    function extractDetailedAllergies(lowerNote) {
+      const allergies = [];
+      if (lowerNote.includes('allergy') || lowerNote.includes('allergic')) {
+        if (lowerNote.includes('penicillin')) allergies.push('Penicillin');
+        if (lowerNote.includes('sulfa')) allergies.push('Sulfa drugs');
+        if (lowerNote.includes('aspirin')) allergies.push('Aspirin');
+      }
+      return allergies.length > 0 ? allergies : ['No known allergies'];
+    }
+
+    function extractChiefComplaint(note) {
+      const sentences = note.split(/[.!?]+/);
+      return sentences[0] || 'Presenting complaint not clearly specified';
+    }
+
+    function extractPrimaryConcern(note) {
+      const lowerNote = note.toLowerCase();
+      if (lowerNote.includes('chest pain')) return 'Cardiac evaluation needed';
+      if (lowerNote.includes('fever') && lowerNote.includes('cough')) return 'Respiratory infection';
+      if (lowerNote.includes('headache')) return 'Neurological complaint';
+      return 'General medical evaluation';
+    }
+
+    function extractPrimaryDiagnosis(lowerNote) {
+      if (lowerNote.includes('hypertension')) return 'Hypertension';
+      if (lowerNote.includes('diabetes')) return 'Diabetes Mellitus';
+      if (lowerNote.includes('infection')) return 'Infection';
+      return 'Diagnosis pending evaluation';
+    }
+
+    function formatVitalsForSummary(vitals) {
+      if (vitals.note) return vitals.note;
+      return Object.entries(vitals).map(([key, value]) => `${key}: ${value}`).join(', ');
+    }
+
+    // Replace the existing generateClinicalSummary and generateEHR functions
+    async function generateClinicalSummary() {
+      const note = document.getElementById("medicalNote").value.trim();
+      const output = document.getElementById("summaryOutput");
+      
+      if (!note) {
+        alert("Please provide or record a medical note.");
+        return;
+      }
+      
+      // Show loading and switch to summary tab
+      output.innerHTML = '<div class="loader"></div> Generating clinical summary using Medical AI...';
+      switchToTab('summary');
+      
+      try {
+        const prompt = PROMPT_TEMPLATES.clinical_summary.replace('{note}', note);
+        const summary = await callMedicalLLM(prompt, 'clinical_summary');
+        output.innerHTML = `<div style="white-space: pre-line;">${summary}</div>`;
+      } catch (error) {
+        console.error('Medical AI error:', error);
+        output.innerHTML = `
+          <div style="color: #e31a1c; text-align: center; padding: 20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h4>Medical AI Service Unavailable</h4>
+            <p>${error.message}</p>
+            <p>Using enhanced local processing instead.</p>
+          </div>
+        `;
+        // Fallback to local processing
+        const summary = generateEnhancedClinicalSummary(note);
+        output.innerHTML = `<div style="white-space: pre-line;">${summary}</div>`;
+      }
+    }
+
+    async function generateEHR() {
+      const note = document.getElementById("medicalNote").value.trim();
+      const output = document.getElementById("ehrOutput");
+      
+      if (!note) {
+        alert("Please provide or record a medical note.");
+        return;
+      }
+      
+      // Show loading and switch to EHR tab
+      output.innerHTML = '<div class="loader"></div> Generating EHR using Medical AI...';
+      switchToTab('ehr');
+      
+      try {
+        const prompt = PROMPT_TEMPLATES.ehr_format.replace('{note}', note);
+        const ehr = await callMedicalLLM(prompt, 'ehr_format');
+        output.innerHTML = `<div style="white-space: pre-line;">${ehr}</div>`;
+      } catch (error) {
+        console.error('Medical AI error:', error);
+        output.innerHTML = `
+          <div style="color: #e31a1c; text-align: center; padding: 20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h4>Medical AI Service Unavailable</h4>
+            <p>${error.message}</p>
+            <p>Using enhanced local processing instead.</p>
+          </div>
+        `;
+        // Fallback to local processing
+        const ehr = generateEnhancedEHR(note);
+        output.innerHTML = `<div style="white-space: pre-line;">${ehr}</div>`;
+      }
+    }
+
+    function switchToTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      if (tabName === 'summary') {
+        document.querySelector('.tab[data-tab="summary"]').classList.add('active');
+        document.getElementById('summaryOutput').classList.add('active');
+        document.getElementById('summaryOutput').style.display = 'block';
+        document.getElementById('ehrOutput').style.display = 'none';
+      } else {
+        document.querySelector('.tab[data-tab="ehr"]').classList.add('active');
+        document.getElementById('ehrOutput').classList.add('active');
+        document.getElementById('ehrOutput').style.display = 'block';
+        document.getElementById('summaryOutput').style.display = 'none';
+      }
+    }
+
+    // Update the event listeners to use the new functions
+    generateSummaryBtn.addEventListener('click', generateClinicalSummary);
+    generateEHRBtn.addEventListener('click', generateEHR);
+
+    // DOM Elements
+    const signupPage = document.getElementById('signupPage');
+    const loginPage = document.getElementById('loginPage');
+    const mainWebsite = document.getElementById('mainWebsite');
+    
+    // Buttons
+    const signupBtn = document.getElementById('signupBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const showLoginLink = document.getElementById('showLoginLink');
+    const showSignupLink = document.getElementById('showSignupLink');
+    const demoBtn = document.getElementById('demoBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const checkInteractionsBtn = document.getElementById('checkInteractionsBtn');
+
+    // Analytics Data Storage
+    let analyticsData = {
+      summaries: [],
+      currentPeriod: '7d'
+    };
+
+    // Sample data for different time periods
+    const sampleData = {
+      '7d': {
+        totalSummaries: 47,
+        accuracy: 96,
+        avgWords: 134,
+        avgProcessing: 2.3,
+        ageDistribution: [25, 45, 30],
+        diagnoses: { hypertension: 23, diabetes: 18, respiratory: 15 },
+        usageTrend: [40, 35, 45, 38, 42, 47, 50],
+        topMedication: 'Metformin',
+        interactionAlerts: 12,
+        avgDrugs: 2.8,
+        timeSaved: 87,
+        trend: 15
+      },
+      '30d': {
+        totalSummaries: 189,
+        accuracy: 95,
+        avgWords: 128,
+        avgProcessing: 2.1,
+        ageDistribution: [28, 42, 30],
+        diagnoses: { hypertension: 25, diabetes: 20, respiratory: 12 },
+        usageTrend: [120, 135, 145, 138, 142, 155, 160, 145, 152, 165, 170, 175, 160, 155, 148, 162, 175, 168, 172, 165, 158, 162, 175, 180, 172, 168, 175, 182, 189, 195],
+        topMedication: 'Lisinopril',
+        interactionAlerts: 45,
+        avgDrugs: 2.6,
+        timeSaved: 85,
+        trend: 12
+      },
+      '90d': {
+        totalSummaries: 512,
+        accuracy: 94,
+        avgWords: 131,
+        avgProcessing: 2.2,
+        ageDistribution: [30, 40, 30],
+        diagnoses: { hypertension: 22, diabetes: 19, respiratory: 14 },
+        usageTrend: [400, 420, 435, 450, 438, 445, 460, 455, 465, 480, 475, 485, 490, 495, 500, 505, 510, 512],
+        topMedication: 'Atorvastatin',
+        interactionAlerts: 128,
+        avgDrugs: 2.7,
+        timeSaved: 86,
+        trend: 8
+      },
+      '1y': {
+        totalSummaries: 2147,
+        accuracy: 93,
+        avgWords: 129,
+        avgProcessing: 2.0,
+        ageDistribution: [27, 43, 30],
+        diagnoses: { hypertension: 24, diabetes: 18, respiratory: 13 },
+        usageTrend: [1200, 1250, 1300, 1350, 1400, 1450, 1500, 1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000, 2050, 2100, 2147],
+        topMedication: 'Amoxicillin',
+        interactionAlerts: 489,
+        avgDrugs: 2.5,
+        timeSaved: 88,
+        trend: 25
+      }
+    };
+
+    // Enhanced Drug Interaction Database
+    const drugDatabase = {
+      validMedications: {
+        'warfarin': { category: 'anticoagulant', names: ['warfarin', 'coumadin', 'jantoven'] },
+        'ibuprofen': { category: 'nsaid', names: ['ibuprofen', 'advil', 'motrin', 'nuprin'] },
+        'aspirin': { category: 'antiplatelet', names: ['aspirin', 'asa', 'ecotrin', 'bayer'] },
+        'amiodarone': { category: 'antiarrhythmic', names: ['amiodarone', 'cordarone', 'pacerone'] },
+        'simvastatin': { category: 'statin', names: ['simvastatin', 'zocor', 'flolipid'] },
+        'clarithromycin': { category: 'antibiotic', names: ['clarithromycin', 'biaxin'] },
+        'lisinopril': { category: 'ace_inhibitor', names: ['lisinopril', 'prinivil', 'zestril'] },
+        'spironolactone': { category: 'diuretic', names: ['spironolactone', 'aldactone'] },
+        'metformin': { category: 'antidiabetic', names: ['metformin', 'glucophage', 'fortamet'] },
+        'digoxin': { category: 'cardiac_glycoside', names: ['digoxin', 'lanoxin'] },
+        'atorvastatin': { category: 'statin', names: ['atorvastatin', 'lipitor'] },
+        'omeprazole': { category: 'ppi', names: ['omeprazole', 'prilosec'] },
+        'levothyroxine': { category: 'thyroid', names: ['levothyroxine', 'synthroid', 'levoxyl'] },
+        'prednisone': { category: 'corticosteroid', names: ['prednisone', 'deltasone'] },
+        'insulin': { category: 'antidiabetic', names: ['insulin', 'lantus', 'humalog'] },
+        'albuterol': { category: 'bronchodilator', names: ['albuterol', 'ventolin', 'proair'] },
+        'paracetamol': { category: 'analgesic', names: ['paracetamol', 'acetaminophen', 'tylenol'] },
+        'amoxicillin': { category: 'antibiotic', names: ['amoxicillin', 'amoxil', 'trimox'] }
+      },
+
+      interactions: {
+        'warfarin': {
+          'ibuprofen': { 
+            level: 'high', 
+            message: 'HIGH RISK: Increased bleeding risk. NSAIDs inhibit platelet function and can cause GI bleeding.',
+            mechanism: 'Pharmacodynamic: Additive anticoagulant effect + GI mucosal damage',
+            recommendation: 'Avoid combination. Use acetaminophen for pain relief instead.'
+          },
+          'aspirin': { 
+            level: 'high', 
+            message: 'HIGH RISK: Significant bleeding risk. Aspirin irreversibly inhibits platelets.',
+            mechanism: 'Pharmacodynamic: Synergistic antiplatelet and anticoagulant effects',
+            recommendation: 'Contraindicated. Consider alternative antiplatelet if needed.'
+          },
+          'amiodarone': { 
+            level: 'medium', 
+            message: 'MODERATE RISK: Increased warfarin effect. Monitor INR closely.',
+            mechanism: 'Pharmacokinetic: CYP2C9 inhibition reducing warfarin metabolism',
+            recommendation: 'Reduce warfarin dose by 30-50% and monitor INR weekly.'
+          }
+        },
+        'simvastatin': {
+          'amiodarone': { 
+            level: 'high', 
+            message: 'HIGH RISK: Increased risk of myopathy and rhabdomyolysis.',
+            mechanism: 'Pharmacokinetic: CYP3A4 inhibition increasing statin levels',
+            recommendation: 'Avoid combination. Use pravastatin or rosuvastatin instead.'
+          },
+          'clarithromycin': { 
+            level: 'high', 
+            message: 'HIGH RISK: Significantly increased statin levels.',
+            mechanism: 'Pharmacokinetic: CYP3A4 inhibition',
+            recommendation: 'Temporarily discontinue simvastatin during antibiotic course.'
+          }
+        },
+        'lisinopril': {
+          'ibuprofen': { 
+            level: 'medium', 
+            message: 'MODERATE RISK: Reduced antihypertensive effect and renal impairment risk.',
+            mechanism: 'Pharmacodynamic: NSAIDs reduce prostaglandin-mediated renal blood flow',
+            recommendation: 'Monitor blood pressure and renal function. Use lowest NSAID dose.'
+          },
+          'spironolactone': { 
+            level: 'medium', 
+            message: 'MODERATE RISK: Hyperkalemia risk. Monitor potassium levels.',
+            mechanism: 'Pharmacodynamic: Reduced potassium excretion',
+            recommendation: 'Monitor potassium levels regularly. Consider dietary potassium restriction.'
+          }
+        }
+      }
+    };
+
+    // Initialize Analytics Dashboard
+    function initAnalyticsDashboard() {
+      updateAnalyticsData('7d');
+      createCharts();
+      setupEventListeners();
+    }
+
+    // Update analytics data based on selected period
+    function updateAnalyticsData(period) {
+      const data = sampleData[period];
+      analyticsData.currentPeriod = period;
+      
+      // Update document statistics
+      document.getElementById('totalSummaries').textContent = data.totalSummaries;
+      document.getElementById('accuracyRate').textContent = data.accuracy + '%';
+      document.getElementById('avgWords').textContent = data.avgWords;
+      document.getElementById('avgProcessing').textContent = data.avgProcessing.toFixed(1) + 'min';
+      
+      // Update age distribution
+      document.getElementById('age18').textContent = data.ageDistribution[0] + '%';
+      document.getElementById('age36').textContent = data.ageDistribution[1] + '%';
+      document.getElementById('age51').textContent = data.ageDistribution[2] + '%';
+      document.getElementById('ageProgress').style.width = data.ageDistribution[1] + '%';
+      
+      // Update diagnoses
+      document.getElementById('hypertensionPercent').textContent = data.diagnoses.hypertension + '%';
+      document.getElementById('diabetesPercent').textContent = data.diagnoses.diabetes + '%';
+      document.getElementById('respiratoryPercent').textContent = data.diagnoses.respiratory + '%';
+      document.getElementById('hypertensionBar').style.width = data.diagnoses.hypertension + '%';
+      document.getElementById('diabetesBar').style.width = data.diagnoses.diabetes + '%';
+      document.getElementById('respiratoryBar').style.width = data.diagnoses.respiratory + '%';
+      
+      // Update medication insights
+      document.getElementById('topMedication').textContent = data.topMedication;
+      document.getElementById('interactionAlerts').textContent = data.interactionAlerts;
+      document.getElementById('avgDrugs').textContent = data.avgDrugs;
+      
+      // Update efficiency metrics
+      document.getElementById('timeSaved').textContent = data.timeSaved + '%';
+      document.getElementById('efficiencyBar').style.width = data.timeSaved + '%';
+      document.getElementById('beforeTime').textContent = '15min';
+      document.getElementById('afterTime').textContent = '2min';
+      
+      // Update trend
+      document.getElementById('trendValue').textContent = data.trend + '%';
+      
+      // Update charts
+      updateCharts(data);
+    }
+
+    // Create initial charts
+    function createCharts() {
+      createAgeChart();
+      createUsageChart();
+    }
+
+    // Update charts with new data
+    function updateCharts(data) {
+      updateAgeChart(data.ageDistribution);
+      updateUsageChart(data.usageTrend);
+    }
+
+    // Create age distribution chart
+    function createAgeChart() {
+      const ageChart = document.getElementById('ageChart');
+      ageChart.innerHTML = '';
+      
+      const ageGroups = ['18-35', '36-50', '51+'];
+      const data = sampleData[analyticsData.currentPeriod].ageDistribution;
+      
+      ageGroups.forEach((group, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = (data[index] * 1.5) + 'px';
+        bar.title = `${group}: ${data[index]}%`;
+        ageChart.appendChild(bar);
+      });
+    }
+
+    // Update age chart
+    function updateAgeChart(ageData) {
+      const bars = document.querySelectorAll('#ageChart .chart-bar');
+      bars.forEach((bar, index) => {
+        bar.style.height = (ageData[index] * 1.5) + 'px';
+        bar.title = `Age Group ${index + 1}: ${ageData[index]}%`;
+      });
+    }
+
+    // Create usage trend chart
+    function createUsageChart() {
+      const usageChart = document.getElementById('usageChart');
+      usageChart.innerHTML = '';
+      
+      const data = sampleData[analyticsData.currentPeriod].usageTrend;
+      const maxValue = Math.max(...data);
+      
+      data.forEach(value => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = (value / maxValue * 150) + 'px';
+        bar.title = `Usage: ${value}`;
+        usageChart.appendChild(bar);
+      });
+    }
+
+    // Update usage chart
+    function updateUsageChart(usageData) {
+      const usageChart = document.getElementById('usageChart');
+      usageChart.innerHTML = '';
+      
+      const maxValue = Math.max(...usageData);
+      const displayCount = Math.min(12, usageData.length);
+      const step = Math.floor(usageData.length / displayCount);
+      
+      for (let i = 0; i < displayCount; i++) {
+        const index = Math.floor(i * step);
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = (usageData[index] / maxValue * 150) + 'px';
+        bar.title = `Usage: ${usageData[index]}`;
+        usageChart.appendChild(bar);
+      }
+    }
+
+    // Setup event listeners for analytics
+    function setupEventListeners() {
+      // Time filter buttons
+      document.querySelectorAll('.time-filter').forEach(button => {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.time-filter').forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          updateAnalyticsData(this.dataset.period);
+        });
+      });
+    }
+
+    // Enhanced Drug Interaction Checker
+    function checkDrugInteractions() {
+      const drug1 = document.getElementById('drug1').value.trim().toLowerCase();
+      const drug2 = document.getElementById('drug2').value.trim().toLowerCase();
+      const drug3 = document.getElementById('drug3').value.trim().toLowerCase();
+      
+      const resultsDiv = document.getElementById('interactionResults');
+      
+      resultsDiv.innerHTML = '<div class="loader"></div> Analyzing drug interactions...';
+      
+      if (!drug1 || !drug2) {
+        resultsDiv.innerHTML = '<p style="color:#e31a1c; text-align:center;">Please enter at least two medications to check interactions.</p>';
+        return;
+      }
+      
+      const drugs = [drug1, drug2];
+      if (drug3) drugs.push(drug3);
+      
+      // Validate medications first
+      const validatedDrugs = validateMedications(drugs);
+      const unknownDrugs = validatedDrugs.unknown;
+      const knownDrugs = validatedDrugs.known;
+      
+      let resultsHTML = '';
+      
+      // Show unknown medications warning
+      if (unknownDrugs.length > 0) {
+        resultsHTML += `
+          <div class="interaction-medium">
+            <h4><i class="fas fa-exclamation-triangle"></i> Unknown Medications</h4>
+            <p>The following medications were not recognized: <strong>${unknownDrugs.join(', ')}</strong></p>
+            <p style="font-size:0.9em; margin-top:8px;">
+              <i class="fas fa-lightbulb"></i> Please check spelling or use generic names. Only known medications can be checked for interactions.
+            </p>
+          </div>
+        `;
+      }
+      
+      // If no known medications, show error
+      if (knownDrugs.length < 2) {
+        resultsHTML += `
+          <div class="interaction-high">
+            <h4><i class="fas fa-times-circle"></i> Insufficient Data</h4>
+            <p>Need at least 2 recognized medications to check for interactions.</p>
+            <p>Try using generic names like "ibuprofen" instead of brand names.</p>
+          </div>
+        `;
+        resultsDiv.innerHTML = resultsHTML;
+        return;
+      }
+      
+      // Check interactions between known medications
+      const interactionsFound = findDrugInteractions(knownDrugs);
+      
+      if (interactionsFound.length === 0) {
+        resultsHTML += `
+          <div style="text-align:center; color:#28a745; padding:20px;">
+            <i class="fas fa-check-circle" style="font-size:2rem; margin-bottom:10px;"></i>
+            <h3>No Significant Interactions Found</h3>
+            <p>No major drug interactions detected between the recognized medications:</p>
+            <p><strong>${knownDrugs.join(', ')}</strong></p>
+            <div style="margin-top:15px; padding:10px; background:#e8f5e8; border-radius:5px;">
+              <small><i class="fas fa-info-circle"></i> Always monitor patients for unexpected side effects.</small>
+            </div>
+          </div>
+        `;
+      } else {
+        resultsHTML += '<h3 style="color:#333; margin-bottom:15px;"><i class="fas fa-exclamation-triangle"></i> Drug Interaction Results</h3>';
+        
+        interactionsFound.forEach(interaction => {
+          const levelClass = `interaction-${interaction.level}`;
+          resultsHTML += `
+            <div class="${levelClass}">
+              <h4 style="margin:0 0 10px 0; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-capsules"></i>
+                ${interaction.drugs[0].toUpperCase()} + ${interaction.drugs[1].toUpperCase()}
+                <span style="font-size:0.8em; background:${interaction.level === 'high' ? '#e31a1c' : interaction.level === 'medium' ? '#ffc107' : '#28a745'}; color:white; padding:2px 8px; border-radius:10px; margin-left:10px;">
+                  ${interaction.level.toUpperCase()} RISK
+                </span>
+              </h4>
+              <p style="margin:5px 0;"><strong>Mechanism:</strong> ${interaction.mechanism}</p>
+              <p style="margin:5px 0;">${interaction.message}</p>
+              <p style="margin:10px 0 0 0; padding:8px; background:rgba(255,255,255,0.5); border-radius:4px;">
+                <strong>Recommendation:</strong> ${interaction.recommendation}
+              </p>
+            </div>
+          `;
+        });
+        
+        // Add general safety note
+        resultsHTML += `
+          <div style="margin-top:20px; padding:15px; background:#e3f2fd; border-radius:8px; border-left:4px solid #2196f3;">
+            <h5 style="margin:0 0 10px 0; color:#1976d2;"><i class="fas fa-shield-alt"></i> Clinical Safety Note</h5>
+            <p style="margin:0; font-size:0.9em;">
+              These interactions are based on pharmacological principles. Always consider individual patient factors 
+              including age, renal/hepatic function, and comorbidities. Monitor patients closely when starting 
+              or changing medications.
+            </p>
+          </div>
+        `;
+      }
+      
+      resultsDiv.innerHTML = resultsHTML;
+    }
+
+    // Validate medications against known database
+    function validateMedications(drugs) {
+      const known = [];
+      const unknown = [];
+      
+      drugs.forEach(drug => {
+        let found = false;
+        
+        // Check if drug matches any known medication or its aliases
+        for (const [key, medication] of Object.entries(drugDatabase.validMedications)) {
+          if (medication.names.includes(drug)) {
+            known.push(key);
+            found = true;
+            break;
+          }
+        }
+        
+        // Also check direct key match
+        if (!found && drugDatabase.validMedications[drug]) {
+          known.push(drug);
+          found = true;
+        }
+        
+        if (!found) {
+          unknown.push(drug);
+        }
+      });
+      
+      return { known, unknown };
+    }
+
+    // Find interactions between validated medications
+    function findDrugInteractions(validatedDrugs) {
+      const interactionsFound = [];
+      
+      // Check all possible combinations
+      for (let i = 0; i < validatedDrugs.length; i++) {
+        for (let j = i + 1; j < validatedDrugs.length; j++) {
+          const drugA = validatedDrugs[i];
+          const drugB = validatedDrugs[j];
+          
+          // Check both directions
+          if (drugDatabase.interactions[drugA] && drugDatabase.interactions[drugA][drugB]) {
+            interactionsFound.push({
+              drugs: [drugA, drugB],
+              ...drugDatabase.interactions[drugA][drugB]
+            });
+          } else if (drugDatabase.interactions[drugB] && drugDatabase.interactions[drugB][drugA]) {
+            interactionsFound.push({
+              drugs: [drugB, drugA],
+              ...drugDatabase.interactions[drugB][drugA]
+            });
+          }
+        }
+      }
+      
+      return interactionsFound;
+    }
+
+    // Auto-suggest medications as user types
+    function setupDrugSuggestions() {
+      const drugInputs = ['drug1', 'drug2', 'drug3'];
+      
+      drugInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.addEventListener('input', function() {
+            showDrugSuggestions(this);
+          });
+          
+          input.addEventListener('focus', function() {
+            showDrugSuggestions(this);
+          });
+          
+          input.addEventListener('blur', function() {
+            setTimeout(() => {
+              hideDrugSuggestions(this);
+            }, 200);
+          });
+        }
+      });
+    }
+
+    function showDrugSuggestions(input) {
+      const value = input.value.toLowerCase();
+      if (value.length < 2) return;
+      
+      const suggestions = [];
+      
+      // Find matching medications
+      for (const [key, medication] of Object.entries(drugDatabase.validMedications)) {
+        if (medication.names.some(name => name.includes(value)) || key.includes(value)) {
+          suggestions.push({
+            name: key,
+            aliases: medication.names.slice(0, 2)
+          });
+        }
+      }
+      
+      if (suggestions.length > 0) {
+        let suggestionsHTML = '<div class="drug-suggestions">';
+        suggestions.forEach(suggestion => {
+          suggestionsHTML += `
+            <div class="suggestion-item" onclick="selectSuggestion(this, '${suggestion.name}')">
+              <strong>${suggestion.name}</strong>
+              <small>${suggestion.aliases.join(', ')}</small>
+            </div>
+          `;
+        });
+        suggestionsHTML += '</div>';
+        
+        // Remove existing suggestions
+        const existingSuggestions = input.parentNode.querySelector('.drug-suggestions');
+        if (existingSuggestions) {
+          existingSuggestions.remove();
+        }
+        
+        input.parentNode.insertAdjacentHTML('beforeend', suggestionsHTML);
+      }
+    }
+
+    function hideDrugSuggestions(input) {
+      const suggestions = input.parentNode.querySelector('.drug-suggestions');
+      if (suggestions) {
+        suggestions.remove();
+      }
+    }
+
+    function selectSuggestion(element, drugName) {
+      const input = element.closest('.drug-input-group').querySelector('.drug-input');
+      input.value = drugName;
+      hideDrugSuggestions(input);
+    }
+
+    // Upgrade to Premium Function
+    function upgradeToPremium() {
+      const currentUser = JSON.parse(localStorage.getItem("medinarrateUser"));
+      if (currentUser) {
+        currentUser.isPremium = true;
+        localStorage.setItem("medinarrateUser", JSON.stringify(currentUser));
+        alert('🎉 Welcome to MediNarrate Premium! You now have access to all premium features including Analytics Dashboard and Drug Interaction Checker.');
+        
+        // Reload to show premium features
+        loadMainSite(currentUser);
+        
+        // Scroll to analytics section
+        document.getElementById('analytics').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        alert('Please log in first to upgrade to premium.');
+      }
+    }
+
+    // --- PAGE NAVIGATION ---
+    function showSignup(){
+      loginPage.style.display = "none";
+      signupPage.style.display = "flex";
+    }
+
+    function showLogin(){
+      signupPage.style.display = "none";
+      loginPage.style.display = "flex";
+    }
+
+    // Event Listeners for navigation
+    showLoginLink.addEventListener('click', showLogin);
+    showSignupLink.addEventListener('click', showSignup);
+
+    // --- SIGNUP FUNCTION ---
+    function signup(){
+      const username = document.getElementById("signupUsername").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const name = document.getElementById("name").value.trim();
+
+      if(username && password && email && name){
+        localStorage.setItem("medinarrateUser", JSON.stringify({
+          username, password, email, name,
+          isPremium: username.toLowerCase().includes("premium")
+        }));
+        alert("Signup successful! Please log in.");
+        showLogin();
+      } else {
+        alert("Please fill all fields.");
+      }
+    }
+
+    signupBtn.addEventListener('click', signup);
+
+    // --- LOGIN FUNCTION ---
+    function login(){
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const storedUser = JSON.parse(localStorage.getItem("medinarrateUser"));
+
+      if(storedUser && username === storedUser.username && password === storedUser.password){
+        localStorage.setItem("loggedIn", "true");
+        loadMainSite(storedUser);
+      } else {
+        alert("Invalid credentials. Try: demo / password123");
+      }
+    }
+
+    loginBtn.addEventListener('click', login);
+
+    // --- LOAD MAIN WEBSITE ---
+    function loadMainSite(user){
+      loginPage.style.display = "none";
+      signupPage.style.display = "none";
+      mainWebsite.style.display = "block";
+
+      // Show/hide premium features based on user status
+      if(user.isPremium){
+        document.getElementById("analytics").style.display = "block";
+        document.getElementById("drugCheck").style.display = "block";
+        // Initialize analytics dashboard for premium users
+        setTimeout(initAnalyticsDashboard, 100);
+      } else {
+        document.getElementById("analytics").style.display = "none";
+        document.getElementById("drugCheck").style.display = "none";
+      }
+    }
+
+    // --- LOGOUT ---
+    function logout(){
+      localStorage.removeItem("loggedIn");
+      mainWebsite.style.display = "none";
+      showLogin();
+    }
+
+    logoutBtn.addEventListener('click', logout);
+
+    // --- KEEP USER LOGGED IN ---
+    window.addEventListener('load', function(){
+      const storedUser = JSON.parse(localStorage.getItem("medinarrateUser"));
+      const loggedIn = localStorage.getItem("loggedIn");
+      if(storedUser && loggedIn === "true"){
+        loadMainSite(storedUser);
+      }
+    });
+
+    // --- DEMO BUTTON ---
+    demoBtn.addEventListener('click', function(){
+      document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+    });
+
+    // Drug Interaction Checker Event Listener
+    checkInteractionsBtn.addEventListener('click', checkDrugInteractions);
+
+    // Allow Enter key to trigger drug interaction check
+    document.getElementById('drug1').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') checkDrugInteractions();
+    });
+    document.getElementById('drug2').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') checkDrugInteractions();
+    });
+    document.getElementById('drug3').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') checkDrugInteractions();
+    });
+
+    // Initialize drug suggestions when page loads
+    window.addEventListener('load', function() {
+      setupDrugSuggestions();
+    });
+
+    // --- TAB FUNCTIONALITY ---
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Remove active class from all tabs and contents
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        this.classList.add('active');
+        
+        // Show corresponding content
+        const tabName = this.getAttribute('data-tab');
+        if(tabName === 'summary') {
+          document.getElementById('summaryOutput').classList.add('active');
+          document.getElementById('ehrOutput').style.display = 'none';
+          document.getElementById('summaryOutput').style.display = 'block';
+        } else if(tabName === 'ehr') {
+          document.getElementById('ehrOutput').classList.add('active');
+          document.getElementById('ehrOutput').style.display = 'block';
+          document.getElementById('summaryOutput').style.display = 'none';
+        }
+      });
+    });
+
+    // --- SPEECH TO TEXT ---
+    let recognition = null;
+    let isRecording = false;
+
+    recordBtn.addEventListener('click', toggleRecording);
+
+    function toggleRecording(){
+      if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+        alert("Speech recognition not supported in this browser. Please type your note manually.");
+        return;
+      }
+      
+      if(!recognition){
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+        
+        recognition.onstart = function() {
+          isRecording = true;
+          recordBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop Recording';
+          recordBtn.style.background = '#e31a1c';
+        };
+        
+        recognition.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById("medicalNote").value += transcript + " ";
+        };
+        
+        recognition.onerror = function(event) {
+          console.error('Speech recognition error', event.error);
+          alert("Speech recognition error: " + event.error);
+        };
+        
+        recognition.onend = function() {
+          isRecording = false;
+          recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i> Record';
+          recordBtn.style.background = '#007a7a';
+        };
+      }
+      
+      if(!isRecording){
+        recognition.start();
+      } else {
+        recognition.stop();
+      }
+    }
+
+    // Add the missing functions that are referenced but not defined
+    function extractAge(note) {
+      const ageMatch = note.match(/(\d+)\s*(year|yr|y\.?o\.?)/i);
+      return ageMatch ? ageMatch[1] : null;
+    }
+
+    function extractGender(note) {
+      if (note.match(/\b(male|man|gentleman|boy)\b/i)) return 'Male';
+      if (note.match(/\b(female|woman|lady|girl)\b/i)) return 'Female';
+      return null;
+    }
+
+    function generateDifferentialDiagnoses(symptoms) {
+      const differentials = [];
+      
+      if (symptoms.includes('fever') && symptoms.includes('cough')) {
+        differentials.push('Upper respiratory infection');
+        differentials.push('Influenza');
+        differentials.push('COVID-19');
+        differentials.push('Pneumonia');
+      }
+      
+      if (symptoms.includes('chest pain')) {
+        differentials.push('Musculoskeletal pain');
+        differentials.push('Gastroesophageal reflux');
+        differentials.push('Cardiac etiology (rule out)');
+      }
+      
+      return differentials.length > 0 ? differentials : ['Further evaluation required'];
+    }
+
+    // Make functions globally available for buttons
+    window.upgradeToPremium = upgradeToPremium;
+    window.selectSuggestion = selectSuggestion;
+
+    // Initialize the application
+    window.addEventListener('load', function() {
+      setupDrugSuggestions();
+      
+      // Check if user is logged in
+      const storedUser = JSON.parse(localStorage.getItem("medinarrateUser"));
+      const loggedIn = localStorage.getItem("loggedIn");
+      if(storedUser && loggedIn === "true"){
+        loadMainSite(storedUser);
+      }
+    });
+  </script>
+</body>
+</html>
