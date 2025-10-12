@@ -444,7 +444,198 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     
-    @media(max-width:600px){nav{flex-direction:column;gap:10px}}
+    /* AI Voice Assistant Chat Box */
+    .voice-assistant {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .assistant-toggle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007a7a, #0abde3);
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .assistant-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .assistant-toggle.listening {
+      background: linear-gradient(135deg, #e31a1c, #ff6b6b);
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .chat-container {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 350px;
+      height: 500px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .chat-container.open {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .chat-header {
+      background: linear-gradient(135deg, #007a7a, #0abde3);
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-header h3 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .close-chat {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .message {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      line-height: 1.4;
+    }
+    
+    .user-message {
+      align-self: flex-end;
+      background: #007a7a;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+    
+    .bot-message {
+      align-self: flex-start;
+      background: #f0f9ff;
+      color: #333;
+      border-bottom-left-radius: 5px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .chat-input {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      gap: 10px;
+    }
+    
+    .chat-input input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .chat-input button {
+      background: #007a7a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #007a7a;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+    
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
+    @media(max-width:600px){
+      nav{flex-direction:column;gap:10px}
+      .chat-container {
+        width: 300px;
+        height: 400px;
+      }
+    }
+    .ph{
+      font-size:50px;
+      color:black;
+    }
+    .mn{
+      font-size:50px;
+      color:black;
+    }
   </style>
 </head>
 <body>
@@ -488,6 +679,7 @@
     </nav>
 
     <section class="hero">
+      <h1 class="ph">PowerHouse</h1> <h6>Presents</h6> <h1 class="mn">MediNarrate</h1>
       <h2>AI-Powered Clinical Summary Generator</h2>
       <p>Transform doctors' voice notes into structured EHRs instantly.</p>
       <button id="demoBtn">Start Demo</button>
@@ -501,6 +693,7 @@
         <div class="feature"><i class="fa-solid fa-file-medical"></i><h3>EHR Generation</h3><p>Create structured Electronic Health Records automatically.</p></div>
         <div class="feature"><i class="fa-solid fa-chart-line"></i><h3>Analytics Dashboard</h3><p>Premium insights and patient trends.</p></div>
         <div class="feature"><i class="fa-solid fa-capsules"></i><h3>Drug Interaction Check</h3><p>AI-powered medication alerts for premium users.</p></div>
+        <div class="feature"><i class="fa-solid fa-robot"></i><h3>AI Voice Assistant</h3><p>Interactive voice assistant for medical guidance.</p></div>
       </div>
     </section>
 
@@ -681,6 +874,7 @@
             <li><i class="fas fa-times" style="color:#e31a1c"></i> EHR Generation</li>
             <li><i class="fas fa-times" style="color:#e31a1c"></i> Analytics Dashboard</li>
             <li><i class="fas fa-times" style="color:#e31a1c"></i> Drug Interaction Check</li>
+            <li><i class="fas fa-times" style="color:#e31a1c"></i> AI Voice Assistant</li>
           </ul>
           <button class="btn btn-secondary" style="width:100%;padding:12px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer">Current Plan</button>
         </div>
@@ -697,6 +891,7 @@
             <li><i class="fas fa-check"></i> EHR Generation</li>
             <li><i class="fas fa-check"></i> Advanced Analytics Dashboard</li>
             <li><i class="fas fa-check"></i> AI Drug Interaction Check</li>
+            <li><i class="fas fa-check"></i> AI Voice Assistant</li>
             <li><i class="fas fa-check"></i> Priority Support</li>
             <li><i class="fas fa-check"></i> Custom Templates</li>
           </ul>
@@ -749,6 +944,29 @@
       <p>Contact us: support@medinarrate.ai</p>
       <p>&copy; 2025 MediNarrate. All rights reserved.</p>
     </footer>
+  </div>
+
+  <!-- AI Voice Assistant -->
+  <div class="voice-assistant" id="voiceAssistant">
+    <button class="assistant-toggle" id="assistantToggle">
+      <i class="fas fa-robot"></i>
+    </button>
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-header">
+        <h3><i class="fas fa-robot"></i> MediNarrate Assistant</h3>
+        <button class="close-chat" id="closeChat"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          Hello! I'm your MediNarrate AI assistant. How can I help you today? You can ask me about common symptoms, medications, or general health advice.
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message or click mic to speak...">
+        <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
+        <button id="voiceInputBtn"><i class="fas fa-microphone"></i></button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -900,8 +1118,319 @@ PROVIDER NOTES:
 - All clinical decisions should be made by qualified healthcare providers
 
 DISCLAIMER: AI-generated content for clinical support - requires physician verification
+      `,
+
+      voice_assistant: `
+You are MediNarrate AI, a friendly and helpful medical assistant designed to provide general health information and guidance. You are NOT a substitute for professional medical advice.
+
+IMPORTANT: Always remind users to consult with healthcare professionals for proper diagnosis and treatment.
+
+USER QUESTION: {question}
+
+Please provide a helpful, accurate, and reassuring response. If the symptoms sound serious, recommend seeing a doctor immediately.
+
+Structure your response to be:
+1. Friendly greeting and acknowledgment
+2. General information about the condition/symptoms
+3. Basic home care suggestions (if appropriate)
+4. When to seek medical attention
+5. Reminder to consult healthcare professional
+
+Keep your response conversational and easy to understand. Avoid medical jargon where possible.
       `
     };
+
+    // AI Voice Assistant Implementation
+    class VoiceAssistant {
+      constructor() {
+        this.isListening = false;
+        this.recognition = null;
+        this.synthesis = window.speechSynthesis;
+        this.isChatOpen = false;
+        this.init();
+      }
+
+      init() {
+        this.setupEventListeners();
+        this.setupSpeechRecognition();
+      }
+
+      setupEventListeners() {
+        const toggleBtn = document.getElementById('assistantToggle');
+        const closeBtn = document.getElementById('closeChat');
+        const sendBtn = document.getElementById('sendMessage');
+        const voiceBtn = document.getElementById('voiceInputBtn');
+        const chatInput = document.getElementById('chatInput');
+
+        toggleBtn.addEventListener('click', () => this.toggleChat());
+        closeBtn.addEventListener('click', () => this.closeChat());
+        sendBtn.addEventListener('click', () => this.sendMessage());
+        voiceBtn.addEventListener('click', () => this.toggleVoiceInput());
+        
+        chatInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.sendMessage();
+        });
+      }
+
+      setupSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          this.recognition = new SpeechRecognition();
+          this.recognition.continuous = false;
+          this.recognition.interimResults = false;
+          this.recognition.lang = 'en-US';
+
+          this.recognition.onstart = () => {
+            this.isListening = true;
+            this.updateVoiceButton();
+          };
+
+          this.recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('chatInput').value = transcript;
+            this.sendMessage(transcript);
+          };
+
+          this.recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            this.isListening = false;
+            this.updateVoiceButton();
+          };
+
+          this.recognition.onend = () => {
+            this.isListening = false;
+            this.updateVoiceButton();
+          };
+        }
+      }
+
+      toggleChat() {
+        const chatContainer = document.getElementById('chatContainer');
+        this.isChatOpen = !this.isChatOpen;
+        
+        if (this.isChatOpen) {
+          chatContainer.classList.add('open');
+        } else {
+          chatContainer.classList.remove('open');
+        }
+      }
+
+      closeChat() {
+        document.getElementById('chatContainer').classList.remove('open');
+        this.isChatOpen = false;
+      }
+
+      toggleVoiceInput() {
+        if (!this.recognition) {
+          this.addMessage('Speech recognition is not supported in your browser. Please type your message.', 'bot');
+          return;
+        }
+
+        if (this.isListening) {
+          this.recognition.stop();
+        } else {
+          this.recognition.start();
+        }
+      }
+
+      updateVoiceButton() {
+        const voiceBtn = document.getElementById('voiceInputBtn');
+        const toggleBtn = document.getElementById('assistantToggle');
+        
+        if (this.isListening) {
+          voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+          voiceBtn.style.background = '#e31a1c';
+          toggleBtn.classList.add('listening');
+        } else {
+          voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+          voiceBtn.style.background = '#007a7a';
+          toggleBtn.classList.remove('listening');
+        }
+      }
+
+      async sendMessage(text = null) {
+        const chatInput = document.getElementById('chatInput');
+        const message = text || chatInput.value.trim();
+
+        if (!message) return;
+
+        // Add user message to chat
+        this.addMessage(message, 'user');
+        chatInput.value = '';
+
+        // Show typing indicator
+        this.showTypingIndicator();
+
+        try {
+          // Get AI response
+          const response = await this.getAIResponse(message);
+          this.hideTypingIndicator();
+          this.addMessage(response, 'bot');
+          
+          // Speak the response
+          this.speak(response);
+        } catch (error) {
+          this.hideTypingIndicator();
+          console.error('AI response error:', error);
+          const fallbackResponse = this.getFallbackResponse(message);
+          this.addMessage(fallbackResponse, 'bot');
+          this.speak(fallbackResponse);
+        }
+      }
+
+      async getAIResponse(message) {
+        try {
+          const prompt = PROMPT_TEMPLATES.voice_assistant.replace('{question}', message);
+          
+          const response = await fetch(`${GOOGLE_AI_URL}?key=${GOOGLE_AI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: prompt
+                    }
+                  ]
+                }
+              ],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`AI API error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+          } else {
+            throw new Error('Invalid response format from AI');
+          }
+        } catch (error) {
+          console.error('AI call failed:', error);
+          return this.getFallbackResponse(message);
+        }
+      }
+
+      getFallbackResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        // Common symptom responses
+        if (lowerMessage.includes('cold') || lowerMessage.includes('flu')) {
+          return `I understand you're asking about cold or flu symptoms. Here's some general advice:
+
+• Rest and stay hydrated with water, broth, or electrolyte drinks
+• Use a humidifier to ease congestion
+• Gargle with warm salt water for sore throat
+• Over-the-counter cold medications may help with symptoms
+
+🩺 When to see a doctor:
+• Fever above 102°F (39°C)
+• Symptoms lasting more than 10 days
+• Difficulty breathing or chest pain
+• Severe headache or sinus pain
+
+Remember, I'm an AI assistant. Please consult a healthcare professional for proper diagnosis and treatment.`;
+        }
+
+        if (lowerMessage.includes('headache')) {
+          return `I understand you're experiencing headache. Here are some general suggestions:
+
+• Rest in a quiet, dark room
+• Apply a cool compress to your forehead
+• Stay hydrated - drink plenty of water
+• Consider over-the-counter pain relief if appropriate
+
+🚨 Seek immediate medical attention if:
+• This is the worst headache of your life
+• Headache follows a head injury
+• You experience confusion, fever, or vision changes
+• Headache is accompanied by weakness or numbness
+
+Please consult a doctor for persistent or severe headaches.`;
+        }
+
+        if (lowerMessage.includes('fever')) {
+          return `I understand you're concerned about fever. Here's some general information:
+
+• Rest and drink plenty of fluids
+• Dress in lightweight clothing
+• Sponge with lukewarm water if uncomfortable
+• Over-the-counter fever reducers may help
+
+🌡️ When to seek medical care:
+• Fever above 103°F (39.4°C)
+• Fever lasting more than 3 days
+• Accompanied by rash, stiff neck, or confusion
+• In infants under 3 months with any fever
+
+Always consult a healthcare provider for proper evaluation.`;
+        }
+
+        // Default response for other queries
+        return `Thank you for your question. I'm MediNarrate AI, here to provide general health information.
+
+For specific medical concerns, symptoms that worry you, or persistent health issues, please consult with a healthcare professional who can provide personalized medical advice based on your complete health history and proper examination.
+
+Is there anything else I can help you with regarding general health information?`;
+      }
+
+      addMessage(text, sender) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        messageDiv.textContent = text;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      showTypingIndicator() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+          MediNarrate AI is typing
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      speak(text) {
+        if (!this.synthesis) return;
+
+        // Clean text for speech (remove markdown, etc.)
+        const cleanText = text.replace(/[#*\-•]/g, '').replace(/\n/g, '. ');
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+
+        this.synthesis.speak(utterance);
+      }
+    }
 
     // Enhanced Medical LLM Integration with Google AI
     async function callMedicalLLM(prompt, type = 'clinical_summary') {
@@ -1887,6 +2416,11 @@ DISCLAIMER: AI-generated EHR - requires physician verification
         document.getElementById("analytics").style.display = "none";
         document.getElementById("drugCheck").style.display = "none";
       }
+
+      // Initialize voice assistant for all users
+      setTimeout(() => {
+        new VoiceAssistant();
+      }, 500);
     }
 
     // --- LOGOUT ---
